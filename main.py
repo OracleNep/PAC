@@ -1,3 +1,5 @@
+#上个版本有BUG，嗷嗷检修才修好的，73行是调试的地方，运行有问题直接取消注释即可
+
 import json
 import os
 import requests
@@ -14,7 +16,7 @@ def get_latest_version_from_website(website_url):
             print(f"无法获取最新版本: {response.status_code}")
             return None
     except requests.RequestException as e:
-        print(f"由于网络错误，无法获取最新版本")
+        print(f"由于网络错误，无法获取最新版本: {e}")
         return None
 
 def download_file_from_website(website_url, filename):
@@ -28,7 +30,7 @@ def download_file_from_website(website_url, filename):
         else:
             print(f"下载失败 {filename}: {response.status_code}")
     except requests.RequestException as e:
-        print(f"由于网络错误 而无法下载 {filename}")
+        print(f"由于网络错误 而无法下载 {filename}: {e}")
 
 def check_and_update_config_json(website_url, filename):
     if not os.path.exists(filename):
@@ -42,7 +44,7 @@ def check_and_update_config_json(website_url, filename):
             local_version = data.get('version', 'unknown')
             print(f"本地 {filename} 版本: {local_version}")
     except Exception as e:
-        print(f"读取 {filename} 时出错")
+        print(f"读取 {filename} 时出错: {e}")
         return
 
     latest_version = get_latest_version_from_website(website_url)
@@ -59,22 +61,25 @@ def load_config_json(filename):
     return data
 
 def check_processes(user_input, data):
-    antivirus_software = data.get('antivirus_software', [])
+
+    antivirus_software = data 
     result = ''
-    for software in antivirus_software:
-        processes = software.get('processes', [])
-        url = software.get('url', '')
-        software_name = software.get('name', '')
+    for name, software_data in antivirus_software.items(): 
+        if name == "version":
+            continue
+        processes = software_data.get('processes', [])
+        url = software_data.get('url', '')
+        
+        # print(f"Checking processes for {name}: {processes}")
 
         for process in processes:
             if process.lower() in user_input.lower():
-                result += f"{process} ==> {software_name}: {url}\n"
+                result += f"{process} ==> {name}: {url}\n"
 
     if not result:
-        result = "无匹配的进程，欢迎提交至\nhttps://github.com/OracleNep/PAC/"
+        result = "无匹配的进程，欢迎提交pr至\nhttps://github.com/OracleNep/PAC/"
 
     return result
-
 
 def clear_form():
     global user_input, result
@@ -96,7 +101,7 @@ def main():
     print("\n请输入进程关键词")
 
     while True:
-        user_input = input("> ")
+        user_input = input(">")
         result = check_processes(user_input, data)
 
         print("\n")
